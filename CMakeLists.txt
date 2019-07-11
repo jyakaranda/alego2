@@ -22,19 +22,65 @@ find_package(ament_cmake REQUIRED)
 # find_package(<dependency> REQUIRED)
 
 find_package(builtin_interfaces REQUIRED)
-find_package(rosidl_default_generators REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(tf2_msgs REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(alego2_msgs REQUIRED)
+find_package(pcl_conversions 2.0 REQUIRED)
 
-set(msg_files
-  "msg/CloudInfo.msg"
+find_package(PCL REQUIRED)
+find_package(Eigen3 REQUIRED)
+find_package(GTSAM REQUIRED)
+find_package(Ceres REQUIRED)
+
+include_directories(include
+  ${EIGEN3_INCLUDE_DIRS}
+  ${GTSAM_INCLUDE_DIRS}
+  ${CERES_INCLUDE_DIRS}
+  ${tf2_INCLUDE_DIRS}
+  ${tf2_ros_INCLUDE_DIRS}
 )
 
-rosidl_generate_interfaces(${PROJECT_NAME}
-  ${msg_files}
-  DEPENDENCIES builtin_interfaces std_msgs
+add_executable(IP src/IP.cpp)
+ament_target_dependencies(IP 
+  rclcpp
+  sensor_msgs
+  nav_msgs
+  geometry_msgs
+  tf2_msgs
+  alego2_msgs
+  pcl_conversions
+)
+target_link_libraries(IP ${Boost_SYSTEM_LIBRARY} ${PCL_LIBRARIES})
+
+add_executable(LO src/LO.cpp)
+ament_target_dependencies(LO 
+  rclcpp
+  tf2_ros
+  tf2
+  tf2_geometry_msgs
+  sensor_msgs
+  nav_msgs
+  geometry_msgs
+  tf2_msgs
+  alego2_msgs
+  pcl_conversions
+)
+target_link_libraries(LO ${Boost_SYSTEM_LIBRARY} ${PCL_LIBRARIES} ${CERES_LIBRARIES}
+  ${tf2_LIBRARIES}
 )
 
-ament_export_dependencies(rosidl_default_runtime)
+install(TARGETS
+  IP
+  LO
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
