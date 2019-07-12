@@ -112,6 +112,13 @@ install(DIRECTORY
   DESTINATION share/${PROJECT_NAME}
 )
 
+install(DIRECTORY 
+  include/${PROJECT_NAME}
+  DESTINATION include
+)
+
+ament_export_include_directories(include)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights

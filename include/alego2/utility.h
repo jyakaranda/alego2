@@ -89,7 +89,7 @@ enum LaserType
   RFANS_16M
 };
 
-LaserType laser_type = LaserType::RFANS_16M;
+const LaserType laser_type = LaserType::RFANS_16M;
 
 struct PointXYZIRPYT
 {
