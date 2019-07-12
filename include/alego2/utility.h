@@ -1,3 +1,14 @@
+/**
+ * @file utility.h
+ * @author heng zhang (you@domain.com)
+ * @brief 
+ * @version 0.1
+ * @date 2019-07-11
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
+
 #ifndef _LOAM_UTILITY_
 #define _LOAM_UTILITY_
 
@@ -24,6 +35,7 @@
 #include <nav_msgs/msg/odometry.hpp>
 #include <geometry_msgs/msg/pose_with_covariance.hpp>
 #include <tf2_msgs/msg/tf_message.hpp>
+#include <std_srvs/srv/empty.hpp>
 
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>

@@ -31,6 +31,7 @@ find_package(nav_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(tf2_msgs REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
 find_package(alego2_msgs REQUIRED)
 find_package(pcl_conversions 2.0 REQUIRED)
 
@@ -50,11 +51,15 @@ include_directories(include
 add_executable(IP src/IP.cpp)
 ament_target_dependencies(IP 
   rclcpp
+  tf2_ros
+  tf2
+  tf2_geometry_msgs
   sensor_msgs
   nav_msgs
   geometry_msgs
   tf2_msgs
   alego2_msgs
+  std_srvs
   pcl_conversions
 )
 target_link_libraries(IP ${Boost_SYSTEM_LIBRARY} ${PCL_LIBRARIES})
@@ -70,16 +75,41 @@ ament_target_dependencies(LO
   geometry_msgs
   tf2_msgs
   alego2_msgs
+  std_srvs
   pcl_conversions
 )
 target_link_libraries(LO ${Boost_SYSTEM_LIBRARY} ${PCL_LIBRARIES} ${CERES_LIBRARIES}
   ${tf2_LIBRARIES}
 )
 
+add_executable(LM src/LM.cpp)
+ament_target_dependencies(LM 
+  rclcpp
+  tf2_ros
+  tf2
+  tf2_geometry_msgs
+  sensor_msgs
+  nav_msgs
+  geometry_msgs
+  tf2_msgs
+  alego2_msgs
+  std_srvs
+  pcl_conversions
+)
+target_link_libraries(LM ${Boost_SYSTEM_LIBRARY} ${PCL_LIBRARIES} ${CERES_LIBRARIES} gtsam
+  ${tf2_LIBRARIES}
+)
+
 install(TARGETS
   IP
   LO
+  LM
   DESTINATION lib/${PROJECT_NAME}
+)
+
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)

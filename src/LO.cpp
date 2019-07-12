@@ -1,3 +1,14 @@
+/**
+ * @file LO.cpp
+ * @author heng zhang (you@domain.com)
+ * @brief 
+ * @version 0.1
+ * @date 2019-07-11
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
+
 #include "alego2/utility.h"
 
 using namespace std;
@@ -67,6 +78,7 @@ private:
   Eigen::Matrix3d r_w_cur_;
 
   std::mutex m_buf_;
+  std::shared_ptr<LO> self_;
 
 public:
   LO() : Node("LO")
@@ -126,7 +138,6 @@ public:
     pub_surf_last_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/surf_last");
     pub_corner_last_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/corner_last");
     pub_outlier_last_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/outlier_last");
-    tf_broad_ = new tf2_ros::TransformBroadcaster(rclcpp::Node::make_shared("LO"));
 
     sub_segmented_cloud_ = this->create_subscription<sensor_msgs::msg::PointCloud2>("/segmented_cloud", std::bind(&LO::segCloudHandler, this, std::placeholders::_1));
     sub_segmented_info_ = this->create_subscription<alego2_msgs::msg::CloudInfo>("/seg_info", std::bind(&LO::segInfoHandler, this, std::placeholders::_1));
@@ -143,13 +154,15 @@ public:
     cout << "LO onInit end: " << t_init.toc() << endl;
   }
 
-  void mainLoop()
+  void mainLoop(std::shared_ptr<LO> lo)
   {
+    self_ = lo;
+    tf_broad_ = new tf2_ros::TransformBroadcaster(self_);
     rclcpp::Rate rate(100);
     while (rclcpp::ok())
     {
       rate.sleep();
-      rclcpp::spin_some(rclcpp::Node::make_shared("LO"));
+      rclcpp::spin_some(self_);
       if (!seg_cloud_buf_.empty() && !seg_info_buf_.empty() && !outlier_buf_.empty())
       {
         double t1 = seg_cloud_buf_.front()->header.stamp.sec + seg_cloud_buf_.front()->header.stamp.nanosec * 1e-9;
@@ -587,8 +600,7 @@ public:
           nav_msgs::msg::Odometry::Ptr laser_odometry(new nav_msgs::msg::Odometry);
           laser_odometry->header.frame_id = "/odom";
           laser_odometry->child_frame_id = seg_cloud_buf_.front()->header.frame_id;
-          laser_odometry->header.stamp.sec = int(t1);
-          laser_odometry->header.stamp.nanosec = (t1 - laser_odometry->header.stamp.sec) * 1e9;
+          laser_odometry->header.stamp = seg_cloud_buf_.front()->header.stamp;
           laser_odometry->pose.pose.orientation.x = tmp_q.x();
           laser_odometry->pose.pose.orientation.y = tmp_q.y();
           laser_odometry->pose.pose.orientation.z = tmp_q.z();
@@ -622,8 +634,7 @@ public:
         // sensor_msgs::msg::PointCloud2::Ptr msg_outlier_last(new sensor_msgs::msg::PointCloud2);
         pcl::toROSMsg(*surf_last_, *msg_surf_last);
         pcl::toROSMsg(*corner_last_, *msg_corner_last);
-        msg_surf_last->header.stamp.sec = int(t1);
-        msg_surf_last->header.stamp.nanosec = (t1 - msg_surf_last->header.stamp.sec) * 1e9;
+        msg_surf_last->header.stamp = seg_cloud_buf_.front()->header.stamp;
         msg_surf_last->header.frame_id = seg_cloud_buf_.front()->header.frame_id;
         msg_corner_last->header = msg_surf_last->header;
         pub_surf_last_->publish(msg_surf_last);
@@ -904,7 +915,7 @@ int main(int argc, char **argv)
 {
   rclcpp::init(argc, argv);
   auto lo = std::make_shared<LO>();
-  lo->mainLoop();
+  lo->mainLoop(lo);
   rclcpp::spin(lo);
   rclcpp::shutdown();
   return 0;
